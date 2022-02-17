@@ -7,6 +7,7 @@ from torchvision.datasets import CIFAR10
 from datasets.celeba import CelebA
 from datasets.ffhq import FFHQ
 from datasets.lsun import LSUN
+# from datasets.scenery6000 import Scenery6000
 from torch.utils.data import Subset
 import numpy as np
 
@@ -46,13 +47,13 @@ def get_dataset(args, config):
 
     if config.data.dataset == "CIFAR10":
         dataset = CIFAR10(
-            os.path.join(args.exp, "datasets", "cifar10"),
+            os.path.join(args.imp, "cifar10"),
             train=True,
             download=True,
             transform=tran_transform,
         )
         test_dataset = CIFAR10(
-            os.path.join(args.exp, "datasets", "cifar10_test"),
+            os.path.join(args.imp, "cifar10_test"),
             train=False,
             download=True,
             transform=test_transform,
@@ -67,7 +68,7 @@ def get_dataset(args, config):
         y2 = cx + 64
         if config.data.random_flip:
             dataset = CelebA(
-                root=os.path.join(args.exp, "datasets", "celeba"),
+                root=os.path.join(args.imp, "celeba"),
                 split="train",
                 transform=transforms.Compose(
                     [
@@ -81,7 +82,7 @@ def get_dataset(args, config):
             )
         else:
             dataset = CelebA(
-                root=os.path.join(args.exp, "datasets", "celeba"),
+                root=os.path.join(args.imp, "celeba"),
                 split="train",
                 transform=transforms.Compose(
                     [
@@ -94,7 +95,7 @@ def get_dataset(args, config):
             )
 
         test_dataset = CelebA(
-            root=os.path.join(args.exp, "datasets", "celeba"),
+            root=os.path.join(args.imp, "celeba"),
             split="test",
             transform=transforms.Compose(
                 [
@@ -111,7 +112,7 @@ def get_dataset(args, config):
         val_folder = "{}_val".format(config.data.category)
         if config.data.random_flip:
             dataset = LSUN(
-                root=os.path.join(args.exp, "datasets", "lsun"),
+                root=os.path.join(args.imp, "lsun"),
                 classes=[train_folder],
                 transform=transforms.Compose(
                     [
@@ -124,7 +125,7 @@ def get_dataset(args, config):
             )
         else:
             dataset = LSUN(
-                root=os.path.join(args.exp, "datasets", "lsun"),
+                root=os.path.join(args.imp, "lsun"),
                 classes=[train_folder],
                 transform=transforms.Compose(
                     [
@@ -136,7 +137,7 @@ def get_dataset(args, config):
             )
 
         test_dataset = LSUN(
-            root=os.path.join(args.exp, "datasets", "lsun"),
+            root=os.path.join(args.imp, "lsun"),
             classes=[val_folder],
             transform=transforms.Compose(
                 [
@@ -150,7 +151,7 @@ def get_dataset(args, config):
     elif config.data.dataset == "FFHQ":
         if config.data.random_flip:
             dataset = FFHQ(
-                path=os.path.join(args.exp, "datasets", "FFHQ"),
+                path=os.path.join(args.imp, "FFHQ"),
                 transform=transforms.Compose(
                     [transforms.RandomHorizontalFlip(p=0.5), transforms.ToTensor()]
                 ),
@@ -158,7 +159,7 @@ def get_dataset(args, config):
             )
         else:
             dataset = FFHQ(
-                path=os.path.join(args.exp, "datasets", "FFHQ"),
+                path=os.path.join(args.imp, "FFHQ"),
                 transform=transforms.ToTensor(),
                 resolution=config.data.image_size,
             )
@@ -175,6 +176,39 @@ def get_dataset(args, config):
         )
         test_dataset = Subset(dataset, test_indices)
         dataset = Subset(dataset, train_indices)
+
+    # elif config.data.dataset == "SCENERY6000":
+    #     dataset = Scenery6000(
+    #         root=os.path.join(args.imp, scenery6000),
+    #         transform=tran_transform
+    #     )
+
+    #     num_items = len(dataset)
+    #     indices = list(range(num_items))
+    #     random_state = np.random.get_state()
+    #     np.random.seed(2019)
+    #     np.random.shuffle(indices)
+    #     np.random.set_state(random_state)
+    #     train_indices, test_indices = (
+    #         indices[: int(num_items * 0.9)],
+    #         indices[int(num_items * 0.9) :],
+    #     )
+
+    #     dataset = Subset(dataset, train_indices)
+    #     test_dataset = Subset(dataset, test_indices)
+
+    #     f=open('train.txt','w')
+    #     for i,(img,target) in enumerate(train_indices):
+    #         img_path=os.path.join(args.exp+str(i)+".jpg")
+    #         f.write(img_path+'\n')
+    #     f.close()
+
+    #     f=open('test.txt','w')
+    #     for i,(img,target) in enumerate(test_indices):
+    #         img_path=os.path.join(args.exp+str(i)+".jpg")
+    #         f.write(img_path+'\n')
+    #     f.close()
+        
     else:
         dataset, test_dataset = None, None
 
