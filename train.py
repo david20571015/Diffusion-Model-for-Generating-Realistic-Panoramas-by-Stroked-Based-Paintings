@@ -21,6 +21,7 @@ def parse_args_and_config():
         "--config", type=str, required=True, help="Path to the config file"
     )
     parser.add_argument("--seed", type=int, default=1234, help="Random seed")
+    parser.add_argument('--imp', type=str, default='datasets', help='Path for loading datasets.')
     parser.add_argument(
         "--exp", type=str, default="exp", help="Path for saving running related data."
     )
@@ -210,6 +211,7 @@ def dict2namespace(config):
 
 def main():
     args, config = parse_args_and_config()
+    logging.info("Import dataset from {}".format(args.imp))
     logging.info("Writing log file to {}".format(args.log_path))
     logging.info("Exp instance id = {}".format(os.getpid()))
     logging.info("Exp comment = {}".format(args.comment))
