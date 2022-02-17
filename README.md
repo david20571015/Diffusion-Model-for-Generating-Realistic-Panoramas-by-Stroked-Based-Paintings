@@ -3,7 +3,7 @@ This is a students project from National Yang Ming Chiao Tung University. We are
 # Train
 To train model, please run
 ```
-python train.py --config {DATASET}.yml --exp {PROJECT_PATH} --doc {MODEL_NAME} --ni
+python train.py --config {DATASET}.yml --imp{DATASET_PATH} --exp {PROJECT_PATH} --doc {MODEL_NAME} --ni
 ```
 # Evalute
 To evalute result, please run
