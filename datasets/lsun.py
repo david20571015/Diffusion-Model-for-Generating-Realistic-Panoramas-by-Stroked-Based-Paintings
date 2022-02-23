@@ -6,6 +6,7 @@ import io
 from collections.abc import Iterable
 import pickle
 from torchvision.datasets.utils import verify_str_arg, iterable_to_str
+import torch
 
 
 class LSUNClass(VisionDataset):
@@ -44,7 +45,7 @@ class LSUNClass(VisionDataset):
         buf = io.BytesIO()
         buf.write(imgbuf)
         buf.seek(0)
-        img = Image.open(buf).convert("RGB")
+        img = Image.open(buf).copy().convert("RGB")
 
         if self.transform is not None:
             img = self.transform(img)
@@ -165,7 +166,9 @@ class LSUN(VisionDataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        img, _ = db[index]
+        left_img, _ = db[index]
+        right_img, _ = db[(index + len(db) // 2) % len(db)]
+        img = torch.cat([left_img, torch.full_like(left_img, 1.), right_img], -1)
         return img, target
 
     def __len__(self):

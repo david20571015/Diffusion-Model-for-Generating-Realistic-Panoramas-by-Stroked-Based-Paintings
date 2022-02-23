@@ -7,7 +7,7 @@ from torchvision.datasets import CIFAR10
 from datasets.celeba import CelebA
 from datasets.ffhq import FFHQ
 from datasets.lsun import LSUN
-# from datasets.scenery6000 import Scenery6000
+from datasets.scenery6000 import Scenery6000
 from torch.utils.data import Subset
 import numpy as np
 
@@ -177,38 +177,39 @@ def get_dataset(args, config):
         test_dataset = Subset(dataset, test_indices)
         dataset = Subset(dataset, train_indices)
 
-    # elif config.data.dataset == "SCENERY6000":
-    #     dataset = Scenery6000(
-    #         root=os.path.join(args.imp, scenery6000),
-    #         transform=tran_transform
-    #     )
+    elif config.data.dataset == "SCENERY6000":
+        dataset = Scenery6000(
+            root=os.path.join(args.imp, "scenery6000"),
+            transform=transforms.Compose([
+                transforms.Resize(config.data.image_size),
+                transforms.CenterCrop(config.data.image_size),
+                transforms.ToTensor()
+            ])
+        )
 
-    #     num_items = len(dataset)
-    #     indices = list(range(num_items))
-    #     random_state = np.random.get_state()
-    #     np.random.seed(2019)
-    #     np.random.shuffle(indices)
-    #     np.random.set_state(random_state)
-    #     train_indices, test_indices = (
-    #         indices[: int(num_items * 0.9)],
-    #         indices[int(num_items * 0.9) :],
-    #     )
+        num_items = len(dataset)
+        indices = list(range(num_items))
+        random_state = np.random.get_state()
+        np.random.seed(2022)
+        np.random.shuffle(indices)
+        np.random.set_state(random_state)
+        train_indices, test_indices = (
+            indices[:int(num_items * 0.9)],
+            indices[int(num_items * 0.9):],
+        )
 
-    #     dataset = Subset(dataset, train_indices)
-    #     test_dataset = Subset(dataset, test_indices)
+        dataset = Subset(dataset, train_indices)
+        test_dataset = Subset(dataset, test_indices)
 
-    #     f=open('train.txt','w')
-    #     for i,(img,target) in enumerate(train_indices):
-    #         img_path=os.path.join(args.exp+str(i)+".jpg")
-    #         f.write(img_path+'\n')
-    #     f.close()
+        with open('train.txt', 'w') as f:
+            for id in train_indices:
+                img_path = os.path.join(args.exp+str(id)+".jpg")
+                f.write(img_path+'\n')
 
-    #     f=open('test.txt','w')
-    #     for i,(img,target) in enumerate(test_indices):
-    #         img_path=os.path.join(args.exp+str(i)+".jpg")
-    #         f.write(img_path+'\n')
-    #     f.close()
-        
+        with open('test.txt', 'w') as f:
+            for id in test_indices:
+                img_path = os.path.join(args.exp+str(id)+".jpg")
+                f.write(img_path+'\n')
     else:
         dataset, test_dataset = None, None
 

@@ -152,9 +152,12 @@ class Diffusion(object):
 
                 tb_logger.add_scalar("loss", loss, global_step=step)
 
-                logging.info(
-                    f"step: {step}, loss: {loss.item()}, data time: {data_time / (i+1)}"
-                )
+                if (step - 1) % 100 == 0:
+                    logging.info(
+                        (f"epoch: {epoch} / {self.config.training.n_epochs}, "
+                         f"iter: {i} / {len(train_loader.dataset) // train_loader.batch_size + 1}, "
+                         f"loss: {loss.item()}, "
+                         f"data time: {data_time / (i+1)}"))
 
                 optimizer.zero_grad()
                 loss.backward()

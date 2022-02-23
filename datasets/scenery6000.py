@@ -1,49 +1,40 @@
-# import os
-# import glob
-# import torchvision
+import os
+import glob
+from turtle import right
+import torchvision
+import torch
 
-# from PIL import Image
-# from .vision import VisionDataset
-# from .utils import download_file_from_google_drive, check_integrity
+from .vision import VisionDataset
+from .utils import download_file_from_google_drive, check_integrity
 
-# class Scenery6000(VisionDataset):
-#     base_folder = "scenery6000"
 
-#     """
-#     Args:
-#         root (string): Root directory where images are downloaded to.
-#         transform (callable, optional): A function/transform that  takes in an PIL image
-#             and returns a transformed version. E.g, ``transforms.ToTensor``
-#         target_transform (callable, optional): A function/transform that takes in the
-#             target and transforms it.
-#     """
-#     def __init__(self, root, 
-#                 transform=None,
-#                 target_transform=None):
-#         super(Scenery6000, self).__init__(root, transform=transform, target_transform=target_transform)
+class Scenery6000(VisionDataset):
+    """
+    Args:
+        root (string): Root directory where images are downloaded to.
+        transform (callable, optional): A function/transform that  takes in an PIL image
+            and returns a transformed version. E.g, ``transforms.ToTensor``
+    """
 
-#         self.transform = transform
-#         self.target_transform = target_transform
-#         data = torchvision.datasets.ImageFolder(root=root, transform=self.transform)
-        
-#     def __getitem__(self, index):
-#         """
-#         Args:
-#             index (int): Index
+    def __init__(self, root, transform=None):
+        super(Scenery6000, self).__init__(root, transform=transform)
 
-#         Returns:
-#             tuple: (image, target) where target is index of the target class.
-#         """
+        self.db = torchvision.datasets.ImageFolder(root=root,
+                                                   transform=transform)
 
-#         img = Image.open(os.path.join(self.root, self.base_folder, "all", self.target[index]))
+    def __getitem__(self, index):
+        """
+        Args:
+            index (int): Index
 
-#         if self.transform is not None:
-#             img = self.transform(img)
+        Returns:
+            tuple: (image, target) where target is index of the target class.
+        """
+        left_img = self.db[index][0]
+        right_img = self.db[(index + len(self.db) // 2) % len(self.db)][0]
 
-#         if self.target_transform is not None:
-#             target = self.target_transform(target)
+        return (torch.cat(
+            [left_img, torch.full_like(left_img, 0), right_img], -1), 0)
 
-#         return img, target
-
-#     def __len__(self):
-#         return len(self.data)
+    def __len__(self):
+        return len(self.db)

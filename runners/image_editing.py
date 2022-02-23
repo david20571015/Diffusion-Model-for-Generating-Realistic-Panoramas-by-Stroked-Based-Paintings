@@ -98,7 +98,8 @@ class Diffusion(object):
             raise ValueError
 
         model = Model(self.config)
-        ckpt = torch.hub.load_state_dict_from_url(url, map_location=self.device)
+        # ckpt = torch.hub.load_state_dict_from_url(url, map_location=self.device)
+        ckpt = torch.load("./logs/doc/ckpt.pth")
         model.load_state_dict(ckpt)
         model.to(self.device)
         model = torch.nn.DataParallel(model)
