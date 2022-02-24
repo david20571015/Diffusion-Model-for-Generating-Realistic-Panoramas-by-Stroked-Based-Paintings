@@ -30,11 +30,7 @@ class Scenery6000(VisionDataset):
         Returns:
             tuple: (image, target) where target is index of the target class.
         """
-        left_img = self.db[index][0]
-        right_img = self.db[(index + len(self.db) // 2) % len(self.db)][0]
-
-        return (torch.cat(
-            [left_img, torch.full_like(left_img, 0), right_img], -1), 0)
+        return self.db[index]
 
     def __len__(self):
         return len(self.db)

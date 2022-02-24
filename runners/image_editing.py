@@ -7,6 +7,8 @@ import torchvision.utils as tvu
 
 from models.diffusion import Model
 from functions.process_data import *
+from PIL import Image
+import torchvision.transforms.functional as TF
 
 
 def get_beta_schedule(*, beta_start, beta_end, num_diffusion_timesteps):
@@ -87,32 +89,34 @@ class Diffusion(object):
 
     def image_editing_sample(self):
         print("Loading model")
-        if self.config.data.dataset == "LSUN":
-            if self.config.data.category == "bedroom":
-                url = "https://image-editing-test-12345.s3-us-west-2.amazonaws.com/checkpoints/bedroom.ckpt"
-            elif self.config.data.category == "church_outdoor":
-                url = "https://image-editing-test-12345.s3-us-west-2.amazonaws.com/checkpoints/church_outdoor.ckpt"
-        elif self.config.data.dataset == "CelebA_HQ":
-            url = "https://image-editing-test-12345.s3-us-west-2.amazonaws.com/checkpoints/celeba_hq.ckpt"
-        else:
-            raise ValueError
+        # if self.config.data.dataset == "LSUN":
+        #     if self.config.data.category == "bedroom":
+        #         url = "https://image-editing-test-12345.s3-us-west-2.amazonaws.com/checkpoints/bedroom.ckpt"
+        #     elif self.config.data.category == "church_outdoor":
+        #         url = "https://image-editing-test-12345.s3-us-west-2.amazonaws.com/checkpoints/church_outdoor.ckpt"
+        # elif self.config.data.dataset == "CelebA_HQ":
+        #     url = "https://image-editing-test-12345.s3-us-west-2.amazonaws.com/checkpoints/celeba_hq.ckpt"
+        # else:
+        #     raise ValueError
 
         model = Model(self.config)
-        # ckpt = torch.hub.load_state_dict_from_url(url, map_location=self.device)
-        ckpt = torch.load("./logs/doc/ckpt.pth")
-        model.load_state_dict(ckpt)
-        model.to(self.device)
         model = torch.nn.DataParallel(model)
+        model = model.to(self.device)
+        # ckpt = torch.hub.load_state_dict_from_url(url, map_location=self.device)
+        ckpt = torch.load("./scenery6000/logs/doc/ckpt.pth")
+        model.load_state_dict(ckpt[0])
         print("Model loaded")
         ckpt_id = 0
 
-        download_process_data(path="colab_demo")
         n = self.config.sampling.batch_size
         model.eval()
         print("Start sampling")
         with torch.no_grad():
             name = self.args.npy_name
-            [mask, img] = torch.load("colab_demo/{}.pth".format(name))
+
+            mask = torch.full((3, 256, 256 * 3), 0., dtype=torch.float)
+            img = Image.open('demo.jpg')
+            img = TF.to_tensor(img)
 
             mask = mask.to(self.config.device)
             img = img.to(self.config.device)

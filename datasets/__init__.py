@@ -178,11 +178,12 @@ def get_dataset(args, config):
         dataset = Subset(dataset, train_indices)
 
     elif config.data.dataset == "SCENERY6000":
+        img_size = config.data.image_size
         dataset = Scenery6000(
             root=os.path.join(args.imp, "scenery6000"),
             transform=transforms.Compose([
-                transforms.Resize(config.data.image_size),
-                transforms.CenterCrop(config.data.image_size),
+                transforms.Resize([img_size, img_size * 3]),
+                transforms.CenterCrop([img_size, img_size * 3]),
                 transforms.ToTensor()
             ])
         )

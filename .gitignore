@@ -1,3 +1,4 @@
+# project docs
 __pycache__/
 */__pycache__
 .ipynb_checkpoints
@@ -10,6 +11,10 @@ logs/
 tensorboard/
 datasets/lsun/
 sample.sh
+train.sh
+*.txt
+test.jpg
+datasets/scenery6000/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
