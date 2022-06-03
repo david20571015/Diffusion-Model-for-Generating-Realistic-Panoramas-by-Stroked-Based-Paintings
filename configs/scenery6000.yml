@@ -1,13 +1,13 @@
 data:
     dataset: "SCENERY6000"
-    image_size: 128
+    image_size: 256
     channels: 3
     logit_transform: false
     uniform_dequantization: false
     gaussian_dequantization: false
     random_flip: true
     rescaled: true
-    num_workers: 32
+    num_workers: 12
 
 model:
     type: "simple"
@@ -31,11 +31,11 @@ diffusion:
     
 # training only
 training:
-    batch_size: 4
+    batch_size: 2
     # batch_size: 64
-    n_epochs: 10000
+    n_epochs: 700
     n_iters: 5000000
-    snapshot_freq: 50000
+    snapshot_freq: 20000
     validation_freq: 2000
 
 sampling:
@@ -49,7 +49,7 @@ sampling:
 optim:
     weight_decay: 0.000
     optimizer: "Adam"
-    lr: 0.00002
+    lr: 0.000005
     beta1: 0.9
     amsgrad: false
     eps: 0.00000001

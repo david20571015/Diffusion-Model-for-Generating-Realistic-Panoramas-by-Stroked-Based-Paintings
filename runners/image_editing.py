@@ -108,49 +108,55 @@ class Diffusion(object):
         print("Model loaded")
         ckpt_id = 0
 
-        n = self.config.sampling.batch_size
-        model.eval()
-        print("Start sampling")
-        with torch.no_grad():
-            name = self.args.npy_name
+        for i in range(1, 4):
+            image_name = f'demo{i}'
+            image_folder = f'./scenery6000/{image_name}/t_{self.args.t}'
+            os.makedirs(image_folder, exist_ok=True)
 
-            mask = torch.full((3, 256, 256 * 3), 0., dtype=torch.float)
-            img = Image.open('demo.jpg')
-            img = TF.to_tensor(img)
+            n = self.config.sampling.batch_size
+            model.eval()
+            print('Start sampling')
+            with torch.no_grad():
+                mask = torch.full((3, 256, 256), 0., dtype=torch.float)
+                img = Image.open(f'scenery6000/input/{image_name}.jpg')
+                img = TF.resize(img, (256, 256))
+                img = TF.to_tensor(img)
 
-            mask = mask.to(self.config.device)
-            img = img.to(self.config.device)
-            img = img.unsqueeze(dim=0)
-            img = img.repeat(n, 1, 1, 1)
-            x0 = img
+                mask = mask.to(self.config.device)
+                img = img.to(self.config.device)
+                img = img.unsqueeze(dim=0)
+                img = img.repeat(n, 1, 1, 1)
+                x0 = img
+                
+                tvu.save_image(x0, os.path.join(image_folder,
+                                                f'original_input.png'))
+                x0 = (x0 - 0.5) * 2.
 
-            tvu.save_image(x0, os.path.join(self.args.image_folder, f'original_input.png'))
-            x0 = (x0 - 0.5) * 2.
+                for it in range(self.args.sample_step):
+                    e = torch.randn_like(x0)
+                    total_noise_levels = self.args.t
+                    a = (1 - self.betas).cumprod(dim=0)
+                    x = x0 * a[total_noise_levels - 1].sqrt() + e * (1.0 - a[total_noise_levels - 1]).sqrt()
+                    tvu.save_image((x + 1) * 0.5,
+                                   os.path.join(image_folder,
+                                                f'init_{ckpt_id}.png'))
 
-            for it in range(self.args.sample_step):
-                e = torch.randn_like(x0)
-                total_noise_levels = self.args.t
-                a = (1 - self.betas).cumprod(dim=0)
-                x = x0 * a[total_noise_levels - 1].sqrt() + e * (1.0 - a[total_noise_levels - 1]).sqrt()
-                tvu.save_image((x + 1) * 0.5, os.path.join(self.args.image_folder, f'init_{ckpt_id}.png'))
+                    with tqdm(total=total_noise_levels, desc='Iteration {}'.format(it)) as progress_bar:
+                        for i in reversed(range(total_noise_levels)):
+                            t = (torch.ones(n) * i).to(self.device)
+                            x_ = image_editing_denoising_step_flexible_mask(x, t=t, model=model,
+                                                                            logvar=self.logvar,
+                                                                            betas=self.betas)
+                            x = x0 * a[i].sqrt() + e * (1.0 - a[i]).sqrt()
+                            x[:, (mask != 1.)] = x_[:, (mask != 1.)]
+                            # added intermediate step vis
+                            if (i + 1) % 100 == 0:
+                                tvu.save_image((x + 1) * 0.5, os.path.join(image_folder,
+                                                                           f'noise_t_{i}_{it}.png'))
+                            progress_bar.update(1)
 
-                with tqdm(total=total_noise_levels, desc="Iteration {}".format(it)) as progress_bar:
-                    for i in reversed(range(total_noise_levels)):
-                        t = (torch.ones(n) * i).to(self.device)
-                        x_ = image_editing_denoising_step_flexible_mask(x, t=t, model=model,
-                                                                        logvar=self.logvar,
-                                                                        betas=self.betas)
-                        x = x0 * a[i].sqrt() + e * (1.0 - a[i]).sqrt()
-                        x[:, (mask != 1.)] = x_[:, (mask != 1.)]
-                        # added intermediate step vis
-                        # if (i - 99) % 100 == 0:
-                        if i % 100 == 0:
-                            tvu.save_image((x + 1) * 0.5, os.path.join(self.args.image_folder,
-                                                                       f'noise_t_{i}_{it}.png'))
-                        progress_bar.update(1)
-
-                x0[:, (mask != 1.)] = x[:, (mask != 1.)]
-                torch.save(x, os.path.join(self.args.image_folder,
-                                           f'samples_{it}.pth'))
-                tvu.save_image((x + 1) * 0.5, os.path.join(self.args.image_folder,
-                                                           f'samples_{it}.png'))
+                    x0[:, (mask != 1.)] = x[:, (mask != 1.)]
+                    # torch.save(x, os.path.join(self.args.image_folder,
+                    #                            f'samples_{it}.pth'))
+                    tvu.save_image((x + 1) * 0.5,
+                                   os.path.join(image_folder, f'samples_{it}.png'))
