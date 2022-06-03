@@ -182,8 +182,8 @@ def get_dataset(args, config):
         dataset = Scenery6000(
             root=os.path.join(args.imp, "scenery6000"),
             transform=transforms.Compose([
-                transforms.Resize([img_size, img_size * 3]),
-                transforms.CenterCrop([img_size, img_size * 3]),
+                transforms.Resize(img_size),
+                transforms.CenterCrop(img_size),
                 transforms.ToTensor()
             ])
         )
